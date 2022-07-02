@@ -1,0 +1,93 @@
+package movies;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+public class database {
+	
+    public static void main(String args[]) {
+    	   Connection conn=null;
+        try {
+        	conn=DriverManager.getConnection("jdbc:sqlite:movies.db");
+        	System.out.println("opened database connection!");
+        	try {
+        		deleteTable(conn);
+        	}
+        	catch(Exception ignored) {
+        		
+        	}
+        	createTable(conn);
+        	System.out.println();
+        	System.out.println("Inserting data");
+        	insertMovie(conn,"3idiots","Amir khan","Kareena kapoor",2009,"Rajkumar Hirani");
+        	insertMovie(conn,"Yeh jawani hai deewani","Ranveer kapoor","Deepika",2013,"Ayan Mukerji");
+        	insertMovie(conn,"RRR","N.T.R rama Rao","Alia bhatt",2022,"S.S Rajamouli");
+        	insertMovie(conn,"Pushpa","Allu arjun","Rashmika Mandana",2021,"Sukumar");
+        	System.out.println();
+        	System.out.println("Displaying database");
+        	displayDatabase(conn,"Movies");
+        }
+        catch(SQLException e){
+        	e.printStackTrace();
+        	System.out.println(e.getClass().getName()+": "+e.getMessage());
+        }
+        finally {
+        	if(conn!=null) {
+        		try {
+        			conn.close();
+        		}
+        		catch(SQLException e){
+        			e.printStackTrace();
+        			System.out.println(e.getMessage());
+        		}
+        	}       	
+        }
+    }
+    private static void displayDatabase(Connection conn,String 	tableName) throws SQLException{
+    	String selectSQL="SELECT * from"+tableName;
+    	Statement stmt=conn.createStatement();
+         ResultSet  rs =stmt.executeQuery(selectSQL);
+    	System.out.println("-----------"+tableName+"----------");
+    	while(rs.next()) {
+    		System.out.println("Movies:"+rs.getString("title")+",");
+    		System.out.println(rs.getString("actor")+",");
+    		System.out.println(rs.getString("actress")+",");
+    		System.out.println(rs.getInt("year")+",");
+    		System.out.println(rs.getString("director"));
+    	}
+    	System.out.println("---------------------------------");
+    	 	
+    }
+    private static void insertMovie(Connection conn,String title,String actor,String actress,int year,String director) throws SQLException{
+    	String insertSQL="INSERT INTO Movies(title,actor,actress,year,director) VALUES(?,?,?,?,?)";
+    	PreparedStatement pstmt=conn.prepareStatement(insertSQL);
+    	pstmt.setString(1, title);
+    	pstmt.setString(2, actor);
+    	pstmt.setString(3, actress);
+    	pstmt.setInt(4, year);
+    	pstmt.setString(5, director);
+    	pstmt.executeUpdate();
+    }
+    private static void createTable(Connection conn) throws SQLException{
+    	String createTablesql=""+
+    "CREATE TABLE Movies"+
+    			"("+
+    "title varchar(255),"+
+    "actor varchar(255),"+
+    "actress varchar(255),"+
+    "year integer,"+
+    "director varchar(255),"+
+    ");"+"";
+    	Statement stmt=conn.createStatement();
+    	stmt.execute(createTablesql);
+    			
+    }
+    private static void deleteTable(Connection conn)throws SQLException{
+    	String deleteTableSQL="DROP TABLE Movies";
+    	Statement stmt=conn.createStatement();
+    	stmt.execute(deleteTableSQL);
+    }
+    
+}
